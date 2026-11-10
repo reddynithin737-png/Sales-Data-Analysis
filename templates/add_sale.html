@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Sale - Sales Data Analysis System{% endblock %}
+
+{% block content %}
+<!-- Page Hero Banner -->
+<div class="page-hero">
+    <h1>➕ Add New Sale</h1>
+    <p>Enter a new sales transaction</p>
+</div>
+
+<div style="max-width: 720px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">📝 Sale Information</h2>
+            <a href="{{ url_for('sales_records') }}" class="btn btn-secondary btn-sm">← Back to Records</a>
+        </div>
+
+        <form method="POST" action="{{ url_for('add_sale') }}">
+            <!-- Row 1: Sale Date & Customer -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="sale_date">Sale Date *</label>
+                    <input 
+                        type="date" 
+                        class="form-control" 
+                        id="sale_date" 
+                        name="sale_date" 
+                        value="{{ sale_date if sale_date else '' }}" 
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="customer">Customer Name *</label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="customer" 
+                        name="customer" 
+                        placeholder="e.g. Alice Walker" 
+                        value="{{ customer if customer else '' }}" 
+                        required
+                    >
+                </div>
+            </div>
+
+            <!-- Row 2: Product Name & Category -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="product_name">Product Name *</label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="product_name" 
+                        name="product_name" 
+                        placeholder="e.g. Gaming Keyboard" 
+                        value="{{ product_name if product_name else '' }}" 
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="category">Category *</label>
+                    <select class="form-control" id="category" name="category" required>
+                        <option value="">Select Category</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                        <option value="Other">+ Add Custom Category</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Custom Category (Optional Hidden Field revealed if needed) -->
+            <div class="form-group" id="custom-category-group" style="display: none;">
+                <label class="form-label" for="custom_category">New Category Name</label>
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    id="custom_category" 
+                    name="custom_category" 
+                    placeholder="Enter custom category"
+                >
+            </div>
+
+            <!-- Row 3: Quantity, Unit Price & Region -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="quantity">Quantity Sold *</label>
+                    <input 
+                        type="number" 
+                        class="form-control" 
+                        id="quantity" 
+                        name="quantity" 
+                        min="1" 
+                        step="1" 
+                        placeholder="e.g. 5" 
+                        value="{{ quantity if quantity else '1' }}" 
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="unit_price">Unit Price ($) *</label>
+                    <input 
+                        type="number" 
+                        class="form-control" 
+                        id="unit_price" 
+                        name="unit_price" 
+                        min="0" 
+                        step="0.01" 
+                        placeholder="e.g. 95.00" 
+                        value="{{ unit_price if unit_price else '' }}" 
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="region">Region *</label>
+                    <select class="form-control" id="region" name="region" required>
+                        <option value="">Select Region</option>
+                        {% for reg in regions %}
+                            <option value="{{ reg }}" {% if region == reg %}selected{% endif %}>{{ reg }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Live Revenue Calculation Callout -->
+            <div style="background: #f5f3ff; border: 1.5px dashed var(--accent-purple); border-radius: var(--radius-md); padding: 1.1rem; margin: 1.25rem 0; display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <span style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--primary-purple);">Calculated Revenue (Quantity &times; Price)</span>
+                    <div style="font-size: 0.82rem; color: var(--text-muted);">Dynamically computed before saving to database</div>
+                </div>
+                <div id="revenue-preview" style="font-size: 1.6rem; font-weight: 800; color: #059669;">
+                    $0.00
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+                <a href="{{ url_for('sales_records') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary" style="padding: 0.7rem 1.75rem;">
+                    💾 Save Sale
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Set default date to today if empty
+    var dateInput = document.getElementById('sale_date');
+    if (dateInput && !dateInput.value) {
+        var today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+    }
+
+    // Toggle custom category field
+    var catSelect = document.getElementById('category');
+    var customGroup = document.getElementById('custom-category-group');
+    if (catSelect && customGroup) {
+        catSelect.addEventListener('change', function() {
+            if (this.value === 'Other') {
+                customGroup.style.display = 'block';
+                document.getElementById('custom_category').focus();
+            } else {
+                customGroup.style.display = 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}
