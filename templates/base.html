@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sales Data Analysis System{% endblock %}</title>
+    <!-- Main Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Chart.js CDN for interactive charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Admin Impersonation Notice Bar -->
+    {% if current_user and current_user.original_admin_id %}
+    <div style="background: linear-gradient(135deg, #d97706, #b45309); color: #ffffff; padding: 0.65rem 1.5rem; text-align: center; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 1001; position: relative;">
+        <span>🛡️ <strong>Admin Mode Active:</strong> You are accessing user account <strong>{{ current_user.full_name }}</strong> (<code>{{ current_user.username }}</code>)</span>
+        <a href="{{ url_for('admin_exit_impersonation') }}" style="background: #ffffff; color: #92400e; padding: 0.35rem 0.95rem; border-radius: 9999px; text-decoration: none; font-weight: 700; font-size: 0.88rem; box-shadow: 0 2px 5px rgba(0,0,0,0.15); display: inline-flex; align-items: center; gap: 0.35rem;">
+            <span>←</span> Exit Impersonation &amp; Return to Admin
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Top Header & Navigation -->
+    <header class="main-header">
+        <div class="header-container">
+            <a href="{{ url_for('index') }}" class="brand-link">
+                <span class="brand-icon">📊</span>
+                <span>Sales Data Analysis System</span>
+            </a>
+
+            {% if current_user %}
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">🏠 Dashboard</a></li>
+                    <li><a href="{{ url_for('sales_records') }}" class="nav-link {% if request.endpoint in ['sales_records', 'edit_sale'] %}active{% endif %}">📋 Sales Records</a></li>
+                    <li><a href="{{ url_for('add_sale') }}" class="nav-link {% if request.endpoint == 'add_sale' %}active{% endif %}">➕ Add New Sale</a></li>
+                    <li><a href="{{ url_for('import_csv') }}" class="nav-link {% if request.endpoint == 'import_csv' %}active{% endif %}">📤 Import CSV</a></li>
+                    <li><a href="{{ url_for('product_analysis') }}" class="nav-link {% if request.endpoint == 'product_analysis' %}active{% endif %}">📊 Product Analysis</a></li>
+                    <li><a href="{{ url_for('region_analysis') }}" class="nav-link {% if request.endpoint == 'region_analysis' %}active{% endif %}">🌍 Region Analysis</a></li>
+                    <li><a href="{{ url_for('profile') }}" class="nav-link {% if request.endpoint == 'profile' %}active{% endif %}">👤 Profile</a></li>
+                    {% if current_user.role == 'admin' or current_user.original_admin_id %}
+                    <li><a href="{{ url_for('admin_panel') }}" class="nav-link {% if request.endpoint == 'admin_panel' %}active{% endif %}" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; font-weight: 700;">👑 Admin Panel</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('logout') }}" class="nav-link logout">🚪 Logout</a></li>
+                </ul>
+            </nav>
+            {% else %}
+            <div class="nav-menu">
+                <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">🏠 Home / Features</a>
+                <a href="{{ url_for('login') }}" class="nav-link {% if request.endpoint == 'login' and not request.path.endswith('admin-login') %}active{% endif %}">🔑 User Login</a>
+                <a href="{{ url_for('admin_login') }}" class="nav-link {% if request.endpoint == 'admin_login' %}active{% endif %}" style="background: rgba(245, 158, 11, 0.25); color: #fef08a; font-weight: 700; border: 1px solid rgba(245, 158, 11, 0.5); border-radius: 6px;">👑 Admin Login</a>
+                <a href="{{ url_for('register') }}" class="nav-link {% if request.endpoint == 'register' %}active{% endif %}">📝 Register</a>
+            </div>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- Page Content Container -->
+    <main class="main-content">
+        <!-- Flash Alert Messages -->
+        <div class="alert-container" style="margin-top: 1.25rem;">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            <span>{{ message }}</span>
+                            <button type="button" class="alert-close" aria-label="Close">&times;</button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Project Footer -->
+    <footer class="main-footer">
+        <p><strong>Sales Data Analysis System</strong> &copy; 2026 &bull; B.Tech CSE Project &bull; Powered by Flask, SQLite, Pandas &amp; Chart.js</p>
+    </footer>
+
+    <!-- App Scripts -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

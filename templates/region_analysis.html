@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Region Analysis - Sales Data Analysis System{% endblock %}
+
+{% block content %}
+<!-- Page Hero Banner -->
+<div class="page-hero">
+    <h1>🌍 Region-wise Sales</h1>
+    <p>Analyze geographic market penetration and territory revenues</p>
+</div>
+
+{% if not data.has_data %}
+<div class="card empty-state">
+    <div class="empty-icon">🌍</div>
+    <h3>No Regional Data Available</h3>
+    <p>Add sales records or import a CSV file to evaluate regional performance.</p>
+    <a href="{{ url_for('add_sale') }}" class="btn btn-primary">➕ Add First Sale</a>
+</div>
+{% else %}
+
+<!-- Best Region Highlight Card -->
+<div class="card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1.5px solid #93c5fd; margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 1.25rem;">
+            <div style="font-size: 3.5rem; line-height: 1;">🌟</div>
+            <div>
+                <span style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: #1d4ed8; letter-spacing: 0.5px;">Top Performing Territory</span>
+                <h2 style="font-size: 1.9rem; font-weight: 800; color: #1e3a8a; margin: 0.2rem 0;">{{ data.best_region }} Region</h2>
+                <p style="color: #1e40af; font-size: 0.95rem;">
+                    Leading all regions with <strong>${{ "{:,.2f}".format(data.best_region_revenue or 0) }}</strong> in gross sales.
+                </p>
+            </div>
+        </div>
+        <div>
+            <a href="{{ url_for('sales_records', region=data.best_region) }}" class="btn btn-primary">
+                View All {{ data.best_region }} Sales →
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Horizontal Bar Chart Card -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">📊 Regional Sales Performance (Horizontal Bar Chart)</h2>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">Comparing regional revenues</span>
+    </div>
+    <div class="chart-container" style="min-height: 320px;">
+        <canvas id="regionSalesChart"></canvas>
+    </div>
+</div>
+
+<!-- Region Performance Table -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">📋 Regional Sales Breakdown</h2>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">Ranked by gross sales volume</span>
+    </div>
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th style="width: 80px; text-align: center;">Rank</th>
+                    <th>Region</th>
+                    <th style="text-align: right;">Transactions</th>
+                    <th style="text-align: right;">Quantity Sold</th>
+                    <th style="text-align: right;">Revenue</th>
+                    <th style="text-align: right;">Percentage of Total Sales</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in data.region_ranking %}
+                <tr {% if r.rank == 1 %}style="background: #eff6ff; font-weight: 600;"{% endif %}>
+                    <td style="text-align: center; font-weight: 700;">
+                        {% if r.rank == 1 %}🥇 1
+                        {% elif r.rank == 2 %}🥈 2
+                        {% elif r.rank == 3 %}🥉 3
+                        {% else %}#{{ r.rank }}
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 700; color: var(--primary-indigo);">
+                        {{ r.region }}
+                        {% if r.rank == 1 %}<span style="font-size: 0.75rem; background: #bfdbfe; color: #1e3a8a; padding: 0.15rem 0.45rem; border-radius: 999px; margin-left: 0.35rem;">LEADER</span>{% endif %}
+                    </td>
+                    <td style="text-align: right; font-weight: 600;">{{ "{:,}".format(r.transactions) }} orders</td>
+                    <td style="text-align: right; font-weight: 600;">{{ "{:,}".format(r.quantity) }} units</td>
+                    <td style="text-align: right; font-weight: 800; color: #059669;">${{ "{:,.2f}".format(r.revenue) }}</td>
+                    <td style="text-align: right;">
+                        <span style="font-weight: 700;">{{ r.percentage }}%</span>
+                        <div style="background: #e2e8f0; height: 6px; border-radius: 3px; margin-top: 4px; overflow: hidden;">
+                            <div style="background: var(--accent-purple); width: {{ r.percentage }}%; height: 100%;"></div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    var payload = {{ data | tojson }};
+    initDashboardCharts(payload);
+</script>
+{% endblock %}

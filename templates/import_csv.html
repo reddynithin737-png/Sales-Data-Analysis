@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Import CSV - Sales Data Analysis System{% endblock %}
+
+{% block content %}
+<!-- Page Hero Banner -->
+<div class="page-hero">
+    <h1>📤 Import Sales Records via CSV</h1>
+    <p>Upload, validate and batch-import structured sales data files</p>
+</div>
+
+<div style="max-width: 1000px; margin: 0 auto;">
+    <!-- Upload Form Card -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">📁 Upload Sales CSV File</h2>
+            <a href="{{ url_for('download_sample_csv') }}" class="btn btn-secondary btn-sm">
+                📥 Download Sample CSV
+            </a>
+        </div>
+
+        <form method="POST" action="{{ url_for('import_csv') }}" enctype="multipart/form-data">
+            <div style="border: 2px dashed #c7d2fe; border-radius: var(--radius-lg); padding: 2rem; text-align: center; background: #fbfaff; margin-bottom: 1.5rem;">
+                <div style="font-size: 2.8rem; margin-bottom: 0.5rem; color: var(--accent-purple);">📄</div>
+                <h4 style="font-size: 1.15rem; color: var(--primary-indigo); margin-bottom: 0.25rem;">Choose a .CSV file to analyze and import</h4>
+                <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.25rem;">
+                    Required columns: <code>sale_id, product_id, product_name, category, sale_date, quantity, unit_price, customer, region</code>
+                </p>
+
+                <input type="file" name="csv_file" id="csv_file" accept=".csv" required style="display: none;">
+                <div style="display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.85rem;">
+                    <label for="csv_file" class="btn btn-primary" style="cursor: pointer;">
+                        📂 Select CSV File
+                    </label>
+                    <button type="submit" name="action" value="upload_dashboard" class="btn btn-success" style="font-size: 0.95rem; padding: 0.65rem 1.6rem;">
+                        🚀 Upload &amp; Show Dashboard
+                    </button>
+                    <button type="submit" name="action" value="preview_validation" class="btn btn-secondary" style="font-size: 0.9rem; padding: 0.65rem 1.2rem;">
+                        🔍 Validate &amp; Preview Report
+                    </button>
+                </div>
+                <div id="file-chosen-text" style="font-size: 0.88rem; color: var(--text-muted); font-weight: 500; margin-bottom: 0.75rem;">
+                    No file selected
+                </div>
+
+                <div style="padding-top: 0.75rem; border-top: 1px dashed #e2e8f0;">
+                    <label style="cursor: pointer; display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.9rem; color: var(--text-dark);">
+                        <input type="checkbox" name="replace_data" value="yes" checked>
+                        <span><strong>Clean File Mode:</strong> Clear previous records and show dashboard specifically of this uploaded file</span>
+                    </label>
+                </div>
+            </div>
+        </form>
+
+        <!-- Documented Duplicate Policy Banner -->
+        <div class="policy-card">
+            <strong>📋 Duplicate Handling Policy:</strong>
+            <p style="margin-top: 0.35rem;">
+                If a <code>sale_id</code> already exists in the system database or appears repeatedly within the uploaded CSV, subsequent entries will not overwrite existing data. They are reported as duplicates and safely skipped to maintain transactional integrity.
+            </p>
+        </div>
+
+        <!-- Sample CSV Files Download Grid -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-md); padding: 1.25rem;">
+            <h4 style="font-size: 1rem; color: var(--primary-indigo); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📦</span> Ready-to-Use Sample CSV Datasets (Click to Download)
+            </h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem;">
+                <a href="{{ url_for('download_sample_csv', filename='sample_sales.csv') }}" class="btn btn-secondary btn-sm" style="justify-content: flex-start; text-align: left; padding: 0.6rem 0.85rem;">
+                    📄 <strong>sample_sales.csv</strong> (30 items)
+                </a>
+                <a href="{{ url_for('download_sample_csv', filename='annual_sales_dataset.csv') }}" class="btn btn-secondary btn-sm" style="justify-content: flex-start; text-align: left; padding: 0.6rem 0.85rem;">
+                    📊 <strong>annual_sales_dataset.csv</strong> (50 items)
+                </a>
+                <a href="{{ url_for('download_sample_csv', filename='electronics_store_sales.csv') }}" class="btn btn-secondary btn-sm" style="justify-content: flex-start; text-align: left; padding: 0.6rem 0.85rem;">
+                    💻 <strong>electronics_store.csv</strong> (15 items)
+                </a>
+                <a href="{{ url_for('download_sample_csv', filename='furniture_and_office_sales.csv') }}" class="btn btn-secondary btn-sm" style="justify-content: flex-start; text-align: left; padding: 0.6rem 0.85rem;">
+                    🪑 <strong>furniture_and_office.csv</strong> (15 items)
+                </a>
+                <a href="{{ url_for('download_sample_csv', filename='test_with_errors.csv') }}" class="btn btn-secondary btn-sm" style="justify-content: flex-start; text-align: left; padding: 0.6rem 0.85rem; border: 1px dashed #f87171;">
+                    ⚠️ <strong>test_with_errors.csv</strong> (Test Error Engine)
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Validation Report Section -->
+    {% if report %}
+        {% if not report.is_structure_valid %}
+            <div class="card" style="border-left: 5px solid var(--danger-red);">
+                <div class="card-header">
+                    <h2 class="card-title" style="color: var(--danger-red);">❌ CSV Structure Invalid</h2>
+                </div>
+                <p style="color: #991b1b; font-weight: 500;">{{ report.structure_error }}</p>
+                <p style="margin-top: 0.75rem; font-size: 0.9rem; color: var(--text-muted);">
+                    Please download the <a href="{{ url_for('download_sample_csv') }}">Sample Sales CSV</a> template to review the expected schema and header format.
+                </p>
+            </div>
+        {% else %}
+            <!-- Summary KPI Pills -->
+            <div class="validation-summary-grid">
+                <div class="val-pill valid">
+                    <div style="font-size: 0.85rem; text-transform: uppercase;">VALID RECORDS</div>
+                    <div class="val-pill-num">{{ report.valid_count }}</div>
+                    <div style="font-size: 0.82rem; opacity: 0.85;">Ready to import</div>
+                </div>
+                <div class="val-pill invalid">
+                    <div style="font-size: 0.85rem; text-transform: uppercase;">INVALID RECORDS</div>
+                    <div class="val-pill-num">{{ report.invalid_count }}</div>
+                    <div style="font-size: 0.82rem; opacity: 0.85;">Contains errors</div>
+                </div>
+                <div class="val-pill duplicate">
+                    <div style="font-size: 0.85rem; text-transform: uppercase;">DUPLICATE RECORDS</div>
+                    <div class="val-pill-num">{{ report.duplicate_count }}</div>
+                    <div style="font-size: 0.82rem; opacity: 0.85;">Skipped by policy</div>
+                </div>
+            </div>
+
+            <!-- Import Action Callout if valid rows exist -->
+            {% if report.valid_count > 0 %}
+            <div class="card" style="background: #ecfdf5; border-color: #a7f3d0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h3 style="color: #065f46; font-size: 1.15rem; margin-bottom: 0.2rem;">Ready to Import</h3>
+                    <p style="color: #047857; font-size: 0.9rem;">
+                        <strong>{{ report.valid_count }}</strong> valid record(s) passed all verification rules. Click confirm to store them in the database.
+                    </p>
+                </div>
+                <form method="POST" action="{{ url_for('confirm_import') }}">
+                    <button type="submit" class="btn btn-success" style="padding: 0.75rem 1.85rem; font-size: 1rem;">
+                        ✅ Confirm &amp; Go to Dashboard ({{ report.valid_count }} Valid Records)
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+
+            <!-- Invalid Rows Table (with explicit Error Reason Column) -->
+            {% if report.invalid_rows %}
+            <div class="card">
+                <div class="card-header" style="border-bottom-color: #fecaca;">
+                    <h3 class="card-title" style="color: #991b1b;">⚠️ Invalid Records ({{ report.invalid_count }})</h3>
+                    <span style="font-size: 0.85rem; color: #991b1b;">These rows failed validation and will not be imported</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);">
+                            <tr>
+                                <th>CSV Row #</th>
+                                <th>Sale ID</th>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Customer</th>
+                                <th>Region</th>
+                                <th style="background: #991b1b;">Error Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in report.invalid_rows %}
+                            <tr>
+                                <td style="font-weight: 700;">Row {{ item.row_num }}</td>
+                                <td>{{ item.sale_id }}</td>
+                                <td>{{ item.data.product_name or '-' }}</td>
+                                <td>{{ item.data.category or '-' }}</td>
+                                <td>{{ item.data.quantity or '-' }}</td>
+                                <td>${{ item.data.unit_price or '-' }}</td>
+                                <td>{{ item.data.customer or '-' }}</td>
+                                <td>{{ item.data.region or '-' }}</td>
+                                <td style="color: #b91c1c; font-weight: 600; background: #fff5f5;">
+                                    {{ item.reason }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Duplicate Rows Table -->
+            {% if report.duplicate_rows %}
+            <div class="card">
+                <div class="card-header" style="border-bottom-color: #fde68a;">
+                    <h3 class="card-title" style="color: #92400e;">🔁 Duplicate Records ({{ report.duplicate_count }})</h3>
+                    <span style="font-size: 0.85rem; color: #92400e;">Skipped according to duplicate policy</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead style="background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);">
+                            <tr>
+                                <th>CSV Row #</th>
+                                <th>Sale ID</th>
+                                <th>Product</th>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Duplicate Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in report.duplicate_rows %}
+                            <tr>
+                                <td style="font-weight: 700;">Row {{ item.row_num }}</td>
+                                <td>#{{ item.sale_id }}</td>
+                                <td>{{ item.data.product_name }}</td>
+                                <td>{{ item.data.sale_date }}</td>
+                                <td>{{ item.data.customer }}</td>
+                                <td style="color: #b45309; font-weight: 500;">{{ item.reason }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Valid Records Preview Table -->
+            {% if report.valid_rows %}
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title" style="color: #065f46;">✅ Valid Records Preview ({{ report.valid_count }})</h3>
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">Previewing verified records</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Row #</th>
+                                <th>Sale ID</th>
+                                <th>Date</th>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Customer</th>
+                                <th>Region</th>
+                                <th>Est. Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in report.valid_rows[:20] %}
+                            <tr>
+                                <td>{{ item.row_num }}</td>
+                                <td>#{{ item.sale_id or 'Auto' }}</td>
+                                <td>{{ item.data.sale_date }}</td>
+                                <td style="font-weight: 600;">{{ item.data.product_name }}</td>
+                                <td><span class="badge-category">{{ item.data.category }}</span></td>
+                                <td>{{ item.data.quantity }}</td>
+                                <td>${{ "{:,.2f}".format(item.data.unit_price) }}</td>
+                                <td>{{ item.data.customer }}</td>
+                                <td><span class="badge-region">{{ item.data.region }}</span></td>
+                                <td style="font-weight: 700; color: #059669;">${{ "{:,.2f}".format(item.data.revenue) }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% if report.valid_rows|length > 20 %}
+                            <tr>
+                                <td colspan="10" style="text-align: center; color: var(--text-muted); font-style: italic;">
+                                    ... and {{ report.valid_rows|length - 20 }} more valid records.
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

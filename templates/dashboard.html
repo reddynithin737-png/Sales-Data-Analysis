@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Sales Data Analysis System{% endblock %}
+
+{% block content %}
+<!-- Gradient Dashboard Header -->
+<div class="page-hero">
+    <h1>📊 Sales Data Analysis Dashboard</h1>
+    <p>Analyze sales performance, products, regions and monthly trends</p>
+    {% if session.get('last_uploaded_file') and data.has_data %}
+    <div style="margin-top: 0.85rem;">
+        <span style="display: inline-flex; align-items: center; gap: 0.45rem; background: rgba(255, 255, 255, 0.22); padding: 0.35rem 0.95rem; border-radius: 999px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            📁 Dashboard of: <u>{{ session.get('last_uploaded_file') }}</u> ({{ data.total_quantity or 0 }} units sold &bull; ${{ "{:,.2f}".format(data.total_sales or 0) }} revenue)
+        </span>
+    </div>
+    {% endif %}
+</div>
+
+{% if not data.has_data %}
+<!-- Friendly Empty State Before File Upload -->
+<div class="card empty-state" style="max-width: 720px; margin: 2rem auto; padding: 2.75rem 2rem; text-align: center; border: 2px dashed #c7d2fe; background: #ffffff; border-radius: 16px; box-shadow: var(--shadow-md);">
+    <div style="width: 80px; height: 80px; margin: 0 auto 1.25rem; border-radius: 50%; background: linear-gradient(135deg, #ede9fe 0%, #e0e7ff 100%); display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">
+        📂
+    </div>
+    <h2 style="font-size: 1.65rem; color: var(--primary-indigo); font-weight: 800; margin-bottom: 0.5rem;">
+        No Sales Data Loaded Yet
+    </h2>
+    <p style="color: var(--text-muted); font-size: 1rem; max-width: 520px; margin: 0 auto 1.5rem; line-height: 1.6;">
+        Upload your sales CSV file below to immediately generate the interactive dashboard, calculate revenue, and display monthly trend charts.
+    </p>
+
+    <!-- Direct CSV Upload Form on Dashboard -->
+    <form method="POST" action="{{ url_for('import_csv') }}" enctype="multipart/form-data" style="max-width: 480px; margin: 0 auto 1.5rem; background: #fbfaff; border: 1.5px solid #e0e7ff; border-radius: 12px; padding: 1.5rem;">
+        <input type="hidden" name="action" value="upload_dashboard">
+        <input type="hidden" name="replace_data" value="yes">
+        <div style="margin-bottom: 1rem;">
+            <input type="file" name="csv_file" accept=".csv" required class="form-control" style="background: #ffffff;">
+        </div>
+        <button type="submit" class="btn btn-success" style="width: 100%; padding: 0.75rem; font-size: 1rem;">
+            🚀 Upload CSV &amp; Show Dashboard
+        </button>
+    </form>
+
+    <div style="display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap;">
+        <a href="{{ url_for('import_csv') }}" class="btn btn-secondary btn-sm">
+            📦 Browse Sample Files &amp; Download Templates
+        </a>
+        <a href="{{ url_for('add_sale') }}" class="btn btn-primary btn-sm">
+            ➕ Add Sale Manually
+        </a>
+    </div>
+</div>
+{% else %}
+
+<!-- Dashboard Top Action Toolbar -->
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; background: #ffffff; padding: 0.85rem 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border-purple-subtle); box-shadow: var(--shadow-sm);">
+    <div style="font-size: 0.95rem; color: var(--text-dark); font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+        <span>📊</span>
+        <span>Active File: <strong>{{ session.get('last_uploaded_file', 'Current Dataset') }}</strong> &bull; Total: <strong>${{ "{:,.2f}".format(data.total_sales or 0) }}</strong></span>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('import_csv') }}" class="btn btn-primary btn-sm">
+            📤 Upload Another CSV
+        </a>
+        <a href="{{ url_for('reset_dashboard') }}" onclick="return confirm('Clear current dashboard data and return to the upload screen?');" class="btn btn-danger btn-sm">
+            🔄 Reset Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- KPI Cards Section -->
+<div class="kpi-grid">
+    <!-- 1. Total Sales -->
+    <div class="kpi-card sales">
+        <div class="kpi-icon-wrapper">💰</div>
+        <div class="kpi-info">
+            <div class="kpi-label">Total Sales</div>
+            <div class="kpi-value">${{ "{:,.2f}".format(data.total_sales or 0) }}</div>
+            <div class="kpi-subtext">Overall gross revenue</div>
+        </div>
+    </div>
+
+    <!-- 2. Total Quantity -->
+    <div class="kpi-card quantity">
+        <div class="kpi-icon-wrapper">📦</div>
+        <div class="kpi-info">
+            <div class="kpi-label">Total Quantity</div>
+            <div class="kpi-value">{{ "{:,}".format(data.total_quantity or 0) }}</div>
+            <div class="kpi-subtext">Units sold across all items</div>
+        </div>
+    </div>
+
+    <!-- 3. Average Sale -->
+    <div class="kpi-card average">
+        <div class="kpi-icon-wrapper">📊</div>
+        <div class="kpi-info">
+            <div class="kpi-label">Average Sale</div>
+            <div class="kpi-value">${{ "{:,.2f}".format(data.avg_sale or 0) }}</div>
+            <div class="kpi-subtext">Average revenue per transaction</div>
+        </div>
+    </div>
+
+    <!-- 4. Best Product -->
+    <div class="kpi-card product">
+        <div class="kpi-icon-wrapper">🏆</div>
+        <div class="kpi-info">
+            <div class="kpi-label">Best Product</div>
+            <div class="kpi-value" title="{{ data.best_product }}">{{ data.best_product or 'N/A' }}</div>
+            <div class="kpi-subtext">${{ "{:,.2f}".format(data.best_product_revenue or 0) }} revenue</div>
+        </div>
+    </div>
+
+    <!-- 5. Sales Growth -->
+    <div class="kpi-card growth">
+        <div class="kpi-icon-wrapper">📈</div>
+        <div class="kpi-info">
+            <div class="kpi-label">Sales Growth</div>
+            <div class="kpi-value">
+                {% if data.sales_growth == 'N/A' %}
+                    <span class="badge-growth neutral">N/A</span>
+                {% elif data.sales_growth_positive %}
+                    <span class="badge-growth positive">{{ data.sales_growth }}</span>
+                {% else %}
+                    <span class="badge-growth negative">{{ data.sales_growth }}</span>
+                {% endif %}
+            </div>
+            <div class="kpi-subtext">Month-over-month trend</div>
+        </div>
+    </div>
+
+    <!-- 6. Best Region -->
+    <div class="kpi-card region">
+        <div class="kpi-icon-wrapper">🌍</div>
+        <div class="kpi-info">
+            <div class="kpi-label">Best Region</div>
+            <div class="kpi-value">{{ data.best_region or 'N/A' }}</div>
+            <div class="kpi-subtext">${{ "{:,.2f}".format(data.best_region_revenue or 0) }} revenue</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Grid: Row 1 -->
+<div class="charts-grid">
+    <!-- 1. Monthly Sales Trend Chart -->
+    <div class="chart-card">
+        <div class="card-header">
+            <h2 class="card-title">📈 Monthly Sales Trend</h2>
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Revenue by Month</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="monthlyTrendChart"></canvas>
+        </div>
+    </div>
+
+    <!-- 2. Category Sales Chart -->
+    <div class="chart-card">
+        <div class="card-header">
+            <h2 class="card-title">🍰 Category Sales Distribution</h2>
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Share of Revenue</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="categorySalesChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Grid: Row 2 -->
+<div class="charts-grid">
+    <!-- 3. Product-wise Sales Chart -->
+    <div class="chart-card">
+        <div class="card-header">
+            <h2 class="card-title">🏆 Product-wise Sales</h2>
+            <a href="{{ url_for('product_analysis') }}" class="btn btn-secondary btn-sm">Full Analysis →</a>
+        </div>
+        <div class="chart-container">
+            <canvas id="productSalesChart"></canvas>
+        </div>
+    </div>
+
+    <!-- 4. Region-wise Sales Chart -->
+    <div class="chart-card">
+        <div class="card-header">
+            <h2 class="card-title">🌍 Region-wise Sales</h2>
+            <a href="{{ url_for('region_analysis') }}" class="btn btn-secondary btn-sm">Full Analysis →</a>
+        </div>
+        <div class="chart-container">
+            <canvas id="regionSalesChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Action Banner -->
+<div class="card" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; background: linear-gradient(135deg, #ede9fe 0%, #e0e7ff 100%); border-color: #c7d2fe;">
+    <div>
+        <h3 style="color: var(--primary-indigo); font-size: 1.15rem; margin-bottom: 0.2rem;">Quick Operations</h3>
+        <p style="color: var(--text-medium); font-size: 0.9rem;">Record new transactions or import your batch sales data directly.</p>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('import_csv') }}" class="btn btn-success">📤 Upload Another CSV</a>
+        <a href="{{ url_for('sales_records') }}" class="btn btn-secondary">📋 View All Records</a>
+        <a href="{{ url_for('add_sale') }}" class="btn btn-primary">➕ Add Sale</a>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Pass backend analytics dataset directly to frontend chart script
+    var analyticsPayload = {{ data | tojson }};
+    initDashboardCharts(analyticsPayload);
+</script>
+{% endblock %}

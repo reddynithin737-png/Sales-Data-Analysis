@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Control Center - Sales Data Analysis System{% endblock %}
+
+{% block content %}
+<div class="page-hero" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%); border-radius: 14px; margin-top: 1rem;">
+    <div style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+        <span style="font-size: 2.2rem;">👑</span>
+        <h1 style="margin: 0;">Admin Control Center</h1>
+    </div>
+    <p>Comprehensive system health, global analytics, and user login access management</p>
+</div>
+
+<!-- System KPI Cards -->
+<div class="kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    <div class="kpi-card sales">
+        <div class="kpi-icon-wrapper" style="background: #fef3c7; color: #b45309;">👥</div>
+        <div class="kpi-info">
+            <div class="kpi-label">Total Users</div>
+            <div class="kpi-value">{{ stats.total_users }}</div>
+            <div class="kpi-subtext">Registered accounts in database</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon-wrapper" style="background: #ecfdf5; color: #059669;">💰</div>
+        <div class="kpi-info">
+            <div class="kpi-label">Gross Revenue</div>
+            <div class="kpi-value">${{ "{:,.2f}".format(stats.total_revenue) }}</div>
+            <div class="kpi-subtext">Across all user transactions</div>
+        </div>
+    </div>
+    <div class="kpi-card quantity">
+        <div class="kpi-icon-wrapper" style="background: #eff6ff; color: #2563eb;">📦</div>
+        <div class="kpi-info">
+            <div class="kpi-label">Total Transactions</div>
+            <div class="kpi-value">{{ stats.total_sales_count }}</div>
+            <div class="kpi-subtext">{{ stats.total_quantity }} total units sold</div>
+        </div>
+    </div>
+    <div class="kpi-card product">
+        <div class="kpi-icon-wrapper" style="background: #faf5ff; color: #7c3aed;">🏷️</div>
+        <div class="kpi-info">
+            <div class="kpi-label">Active Products</div>
+            <div class="kpi-value">{{ stats.total_products }}</div>
+            <div class="kpi-subtext">Catalog products registered</div>
+        </div>
+    </div>
+</div>
+
+<!-- Impersonation Guide Banner -->
+<div style="background: #eff6ff; border-left: 4px solid #2563eb; padding: 1.1rem 1.5rem; border-radius: 8px; margin-bottom: 1.75rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h4 style="color: #1e3a8a; font-size: 1.05rem; font-weight: 700; margin: 0 0 0.25rem 0;">
+            🛡️ Administrative User Access Feature
+        </h4>
+        <p style="color: #3b82f6; font-size: 0.9rem; margin: 0; line-height: 1.4;">
+            As an Administrator, you can click <strong>"Access Account"</strong> next to any user below to immediately log in as them without needing their password. You can return back to this Admin Panel at any time via the top orange banner.
+        </p>
+    </div>
+    <span style="font-size: 0.85rem; font-weight: 700; background: #dbeafe; color: #1e40af; padding: 0.35rem 0.75rem; border-radius: 6px;">
+        Database: {{ db_type.upper() }}
+    </span>
+</div>
+
+<!-- User Management Table Section -->
+<div class="card" style="background: #ffffff; border-radius: 12px; border: 1px solid #ebe8f8; box-shadow: 0 4px 16px rgba(79, 70, 229, 0.07); padding: 1.5rem; margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+        <div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: #1e1b4b; margin: 0;">User Accounts &amp; Access Control</h3>
+            <p style="font-size: 0.88rem; color: #64748b; margin: 0.2rem 0 0 0;">Manage accounts, roles, passwords, and directly access user sessions</p>
+        </div>
+        <div style="font-size: 0.9rem; color: #64748b; font-weight: 600;">
+            Total: <span style="color: #4338ca; font-weight: 700;">{{ users|length }} accounts</span>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th style="width: 60px;">ID</th>
+                    <th>User Details</th>
+                    <th>Role</th>
+                    <th>Sales Records</th>
+                    <th>Revenue Contributed</th>
+                    <th>Registered</th>
+                    <th style="text-align: center; min-width: 280px;">Administrative Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr style="{% if u.user_id == current_user.user_id %}background-color: #f8fafc; font-weight: 500;{% endif %}">
+                    <td style="font-weight: 700; color: #64748b;">#{{ u.user_id }}</td>
+                    <td>
+                        <div style="font-weight: 700; color: #1e1b4b;">{{ u.full_name }}</div>
+                        <div style="font-size: 0.82rem; color: #64748b; display: flex; gap: 0.5rem; align-items: center;">
+                            <span>@{{ u.username }}</span> &bull; <span>{{ u.email }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if u.role == 'admin' %}
+                            <span style="display: inline-block; padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 700; background: #fef3c7; color: #b45309; border: 1px solid #fde68a;">
+                                👑 ADMIN
+                            </span>
+                        {% else %}
+                            <span style="display: inline-block; padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 700; background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe;">
+                                👤 USER
+                            </span>
+                        {% endif %}
+                        {% if u.user_id == current_user.user_id %}
+                            <span style="font-size: 0.72rem; color: #10b981; font-weight: 700; margin-left: 0.25rem;">(You)</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 600;">
+                        {{ u.sales_count }} records
+                    </td>
+                    <td style="font-weight: 700; color: #059669;">
+                        ${{ "{:,.2f}".format(u.total_revenue) }}
+                    </td>
+                    <td style="font-size: 0.85rem; color: #64748b;">
+                        {{ u.created_at[:10] if u.created_at else 'N/A' }}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap;">
+                            <!-- Impersonate Button -->
+                            {% if u.user_id != current_user.user_id %}
+                            <a href="{{ url_for('admin_impersonate', user_id=u.user_id) }}" 
+                               class="btn btn-primary" 
+                               style="padding: 0.35rem 0.75rem; font-size: 0.82rem; border-radius: 6px; text-decoration: none;"
+                               title="Access and log in to this user account">
+                                🛡️ Access Account
+                            </a>
+                            {% else %}
+                            <span class="btn" style="padding: 0.35rem 0.75rem; font-size: 0.82rem; border-radius: 6px; background: #e2e8f0; color: #94a3b8; cursor: not-allowed;">
+                                Active Session
+                            </span>
+                            {% endif %}
+
+                            <!-- Password Reset Modal/Prompt Trigger -->
+                            <button type="button" 
+                                    onclick="promptResetPassword('{{ u.user_id }}', '{{ u.username }}')" 
+                                    class="btn btn-secondary" 
+                                    style="padding: 0.35rem 0.65rem; font-size: 0.82rem; border-radius: 6px;"
+                                    title="Reset user's password">
+                                🔑 Reset
+                            </button>
+
+                            <!-- Role Toggle Form -->
+                            {% if u.user_id != current_user.user_id %}
+                            <form action="{{ url_for('admin_toggle_role', user_id=u.user_id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Change role for {{ u.username }} to {{ 'USER' if u.role == 'admin' else 'ADMIN' }}?');">
+                                <button type="submit" 
+                                        class="btn btn-secondary" 
+                                        style="padding: 0.35rem 0.65rem; font-size: 0.82rem; border-radius: 6px;"
+                                        title="Toggle between Admin and User">
+                                    🔄 Role
+                                </button>
+                            </form>
+
+                            <!-- Delete Form -->
+                            <form action="{{ url_for('admin_delete_user', user_id=u.user_id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to permanently delete user {{ u.username }}?');">
+                                <button type="submit" 
+                                        class="btn btn-danger" 
+                                        style="padding: 0.35rem 0.65rem; font-size: 0.82rem; border-radius: 6px;"
+                                        title="Delete user account">
+                                    🗑️
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Hidden Password Reset Form -->
+<form id="resetPasswordForm" method="POST" action="" style="display: none;">
+    <input type="hidden" name="new_password" id="resetNewPasswordInput">
+</form>
+
+<script>
+function promptResetPassword(userId, username) {
+    const newPassword = prompt(`Enter new password for @${username} (minimum 6 characters):`, "password123");
+    if (newPassword !== null) {
+        if (newPassword.trim().length < 6) {
+            alert("Password must be at least 6 characters long.");
+            return;
+        }
+        const form = document.getElementById('resetPasswordForm');
+        form.action = `/admin/reset-password/${userId}`;
+        document.getElementById('resetNewPasswordInput').value = newPassword.trim();
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

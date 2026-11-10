@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Sale #{{ sale.sale_id }} - Sales Data Analysis System{% endblock %}
+
+{% block content %}
+<!-- Page Hero Banner -->
+<div class="page-hero">
+    <h1>✏️ Edit Sale #{{ sale.sale_id }}</h1>
+    <p>Update sales transaction details</p>
+</div>
+
+<div style="max-width: 720px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">📝 Update Sale Information</h2>
+            <a href="{{ url_for('sales_records') }}" class="btn btn-secondary btn-sm">← Back to Records</a>
+        </div>
+
+        <form method="POST" action="{{ url_for('edit_sale', sale_id=sale.sale_id) }}">
+            <!-- Row 1: Sale Date & Customer -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="sale_date">Sale Date *</label>
+                    <input 
+                        type="date" 
+                        class="form-control" 
+                        id="sale_date" 
+                        name="sale_date" 
+                        value="{{ sale.sale_date }}" 
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="customer">Customer Name *</label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="customer" 
+                        name="customer" 
+                        value="{{ sale.customer }}" 
+                        required
+                    >
+                </div>
+            </div>
+
+            <!-- Row 2: Product Name & Category -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="product_name">Product Name *</label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="product_name" 
+                        name="product_name" 
+                        value="{{ sale.product_name }}" 
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="category">Category *</label>
+                    <select class="form-control" id="category" name="category" required>
+                        {% for cat in categories %}
+                            <option value="{{ cat }}" {% if sale.category == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 3: Quantity, Unit Price & Region -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="quantity">Quantity Sold *</label>
+                    <input 
+                        type="number" 
+                        class="form-control" 
+                        id="quantity" 
+                        name="quantity" 
+                        min="1" 
+                        step="1" 
+                        value="{{ sale.quantity }}" 
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="unit_price">Unit Price ($) *</label>
+                    <input 
+                        type="number" 
+                        class="form-control" 
+                        id="unit_price" 
+                        name="unit_price" 
+                        min="0" 
+                        step="0.01" 
+                        value="{{ sale.unit_price }}" 
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="region">Region *</label>
+                    <select class="form-control" id="region" name="region" required>
+                        {% for reg in regions %}
+                            <option value="{{ reg }}" {% if sale.region == reg %}selected{% endif %}>{{ reg }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Live Revenue Calculation Callout -->
+            <div style="background: #f5f3ff; border: 1.5px dashed var(--accent-purple); border-radius: var(--radius-md); padding: 1.1rem; margin: 1.25rem 0; display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <span style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--primary-purple);">Updated Revenue (Quantity &times; Price)</span>
+                    <div style="font-size: 0.82rem; color: var(--text-muted);">Dynamically recalculated</div>
+                </div>
+                <div id="revenue-preview" style="font-size: 1.6rem; font-weight: 800; color: #059669;">
+                    ${{ "{:,.2f}".format(sale.revenue) }}
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+                <a href="{{ url_for('sales_records') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary" style="padding: 0.7rem 1.75rem;">
+                    💾 Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

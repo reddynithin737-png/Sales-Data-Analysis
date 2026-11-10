@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Error {{ error_code }} - Sales Data Analysis System{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper" style="min-height: 50vh;">
+    <div class="auth-card" style="max-width: 500px; text-align: center;">
+        <div class="auth-header" style="background: linear-gradient(135deg, #4338ca 0%, #312e81 100%);">
+            <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">⚠️</div>
+            <h2>Error {{ error_code }}</h2>
+            <p>{{ "Page Not Found" if error_code == 404 else "Internal Application Error" }}</p>
+        </div>
+        <div class="auth-body">
+            <p style="color: var(--text-medium); margin-bottom: 1.5rem; font-size: 1rem;">
+                {{ message }}
+            </p>
+            <div class="btn-group" style="justify-content: center; flex-wrap: wrap; gap: 0.75rem;">
+                {% if current_user %}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">🏠 Go to Dashboard</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-primary">🔑 Go to Login</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-secondary">📝 Register Account</a>
+                {% endif %}
+                <a href="javascript:history.back()" class="btn btn-secondary">← Go Back</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

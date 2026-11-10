@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}Sales Data Analysis System - Enterprise Sales Intelligence & Management{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%); color: #ffffff; border-radius: 18px; padding: 3.5rem 2rem; margin-top: 1rem; margin-bottom: 2.5rem; text-align: center; box-shadow: 0 10px 30px rgba(30, 27, 75, 0.25); position: relative; overflow: hidden;">
+    <div style="position: absolute; top: -50px; right: -50px; width: 220px; height: 220px; background: rgba(99, 102, 241, 0.15); border-radius: 50%; pointer-events: none;"></div>
+    <div style="position: absolute; bottom: -60px; left: -60px; width: 200px; height: 200px; background: rgba(129, 140, 248, 0.12); border-radius: 50%; pointer-events: none;"></div>
+
+    <div style="position: relative; z-index: 2; max-width: 900px; margin: 0 auto;">
+        <span style="display: inline-block; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); padding: 0.35rem 1.1rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 1.2rem; color: #e0e7ff;">
+            🎓 B.Tech CSE Project • Sales Intelligence Platform
+        </span>
+        <h1 style="font-size: 2.8rem; font-weight: 800; line-height: 1.2; margin-bottom: 1.1rem; letter-spacing: -0.8px;">
+            Sales Data Analysis &amp; Management System
+        </h1>
+        <p style="font-size: 1.15rem; color: #e0e7ff; line-height: 1.6; max-width: 760px; margin: 0 auto 2rem auto;">
+            A complete, production-grade enterprise application for validating, ingesting, analyzing, and visualizing sales performance with multi-user isolation and centralized administrative supervision.
+        </p>
+
+        <!-- CTA Buttons -->
+        <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 2.5rem;">
+            {% if current_user %}
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary" style="font-size: 1.05rem; padding: 0.8rem 1.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                    📊 Launch Dashboard
+                </a>
+                {% if current_user.role == 'admin' or current_user.original_admin_id %}
+                <a href="{{ url_for('admin_panel') }}" class="btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-size: 1.05rem; padding: 0.8rem 1.8rem; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);">
+                    👑 Admin Control Center
+                </a>
+                {% endif %}
+                <a href="{{ url_for('sales_records') }}" class="btn btn-secondary" style="font-size: 1.05rem; padding: 0.8rem 1.8rem; background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3);">
+                    📋 View Sales Records
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-primary" style="font-size: 1.05rem; padding: 0.8rem 1.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                    🔑 User Login
+                </a>
+                <a href="{{ url_for('admin_login') }}" class="btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-size: 1.05rem; padding: 0.8rem 1.8rem; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); font-weight: 700;">
+                    👑 Admin Login
+                </a>
+                <a href="{{ url_for('register') }}" class="btn btn-success" style="font-size: 1.05rem; padding: 0.8rem 1.8rem; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);">
+                    📝 Register
+                </a>
+                <a href="#features" class="btn btn-secondary" style="font-size: 1.05rem; padding: 0.8rem 1.4rem; background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3);">
+                    ✨ Explore Features ↓
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- System Live Counters -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; max-width: 820px; margin: 0 auto; text-align: center;">
+            <div style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 1rem;">
+                <div style="font-size: 1.8rem; font-weight: 800; color: #ffffff;">{{ stats.total_users if stats else 8 }}</div>
+                <div style="font-size: 0.82rem; color: #c7d2fe; text-transform: uppercase; font-weight: 600; margin-top: 0.2rem;">Registered Accounts</div>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 1rem;">
+                <div style="font-size: 1.8rem; font-weight: 800; color: #a7f3d0;">${{ "{:,.2f}".format(stats.total_revenue) if stats else "0.00" }}</div>
+                <div style="font-size: 0.82rem; color: #c7d2fe; text-transform: uppercase; font-weight: 600; margin-top: 0.2rem;">Total Revenue Tracked</div>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 1rem;">
+                <div style="font-size: 1.8rem; font-weight: 800; color: #ffffff;">{{ stats.total_sales_count if stats else 0 }}</div>
+                <div style="font-size: 0.82rem; color: #c7d2fe; text-transform: uppercase; font-weight: 600; margin-top: 0.2rem;">Sales Transactions</div>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 1rem;">
+                <div style="font-size: 1.8rem; font-weight: 800; color: #fed7aa;">{{ stats.total_products if stats else 13 }}</div>
+                <div style="font-size: 0.82rem; color: #c7d2fe; text-transform: uppercase; font-weight: 600; margin-top: 0.2rem;">Catalog Products</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- System Access & Registration Card -->
+<section style="background: #ffffff; border: 1px solid #e0e7ff; border-radius: 14px; padding: 1.5rem 2rem; margin-bottom: 2.5rem; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.06);">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.25rem;">
+        <div>
+            <span style="font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #4338ca; background: #e0e7ff; padding: 0.25rem 0.65rem; border-radius: 6px;">
+                🔐 System Access
+            </span>
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: #1e1b4b; margin: 0.4rem 0 0.2rem 0;">
+                Get Started with Sales Data Analysis System
+            </h3>
+            <p style="font-size: 0.92rem; color: #64748b; margin: 0;">
+                Register your account to manage sales records, or sign in to your dashboard.
+            </p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <a href="{{ url_for('register') }}" class="btn btn-primary" style="font-size: 0.9rem; padding: 0.65rem 1.25rem;">
+                📝 Register Account
+            </a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary" style="font-size: 0.9rem; padding: 0.65rem 1.25rem;">
+                🔑 User Login
+            </a>
+            <a href="{{ url_for('admin_login') }}" class="btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; font-size: 0.9rem; padding: 0.65rem 1.25rem; font-weight: 700;">
+                👑 Admin Login
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Website Features Section -->
+<section id="features" style="margin-bottom: 3rem;">
+    <div style="text-align: center; margin-bottom: 2.2rem;">
+        <span style="color: #4338ca; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Core Architecture &amp; Capabilities</span>
+        <h2 style="font-size: 2.1rem; font-weight: 800; color: #1e1b4b; margin: 0.35rem 0 0.6rem 0;">
+            Features of the Website
+        </h2>
+        <p style="color: #64748b; font-size: 1.05rem; max-width: 680px; margin: 0 auto;">
+            Engineered with full-stack Python Flask, Pandas data engine, and Chart.js to meet every academic and industry presentation standard.
+        </p>
+    </div>
+
+    <!-- Feature Cards Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem;">
+
+        <!-- Feature 1: Interactive Dashboard -->
+        <div class="card" style="background: #ffffff; border: 1px solid #ebe8f8; border-radius: 14px; padding: 1.75rem; box-shadow: 0 4px 16px rgba(79, 70, 229, 0.07); transition: transform 0.2s ease, box-shadow 0.2s ease;">
+            <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1rem;">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+                    📊
+                </div>
+                <div>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: #1e1b4b; margin: 0;">Executive KPI Dashboard</h3>
+                    <span style="font-size: 0.78rem; font-weight: 600; color: #2563eb; text-transform: uppercase;">Real-Time Business Metrics</span>
+                </div>
+            </div>
+            <p style="font-size: 0.93rem; color: #475569; line-height: 1.55; margin-bottom: 1rem;">
+                Calculates and renders 6 real-time performance indicators: Total Revenue, Total Units Sold, Average Order Value, Best Selling Product, and Monthly Growth Rate with positive/negative trend indicators.
+            </p>
+            <ul style="font-size: 0.88rem; color: #64748b; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> Interactive Chart.js Monthly Sales Trend Line</li>
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> Category Revenue Distribution Donut Chart</li>
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> Regional Sales Breakdown Bar Chart</li>
+            </ul>
+        </div>
+
+        <!-- Feature 2: CSV Validation Engine -->
+        <div class="card" style="background: #ffffff; border: 1px solid #ebe8f8; border-radius: 14px; padding: 1.75rem; box-shadow: 0 4px 16px rgba(79, 70, 229, 0.07);">
+            <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1rem;">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+                    📤
+                </div>
+                <div>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: #1e1b4b; margin: 0;">Smart CSV Upload &amp; Validator</h3>
+                    <span style="font-size: 0.78rem; font-weight: 600; color: #059669; text-transform: uppercase;">Automated Data Hygiene</span>
+                </div>
+            </div>
+            <p style="font-size: 0.93rem; color: #475569; line-height: 1.55; margin-bottom: 1rem;">
+                Pre-upload validation engine automatically checks uploaded files before committing rows to the database. Identifies schema mismatch, missing fields, and date format invalidations.
+            </p>
+            <ul style="font-size: 0.88rem; color: #64748b; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> In-file Duplicate Transaction Detection</li>
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> Cross-database Duplicate Detection</li>
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> Row-by-Row Error Diagnostic Table</li>
+            </ul>
+        </div>
+
+        <!-- Feature 3: Sales CRUD & Live Calculations -->
+        <div class="card" style="background: #ffffff; border: 1px solid #ebe8f8; border-radius: 14px; padding: 1.75rem; box-shadow: 0 4px 16px rgba(79, 70, 229, 0.07);">
+            <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1rem;">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: #faf5ff; color: #7c3aed; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+                    📋
+                </div>
+                <div>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: #1e1b4b; margin: 0;">Sales Records Management</h3>
+                    <span style="font-size: 0.78rem; font-weight: 600; color: #7c3aed; text-transform: uppercase;">Complete CRUD Operations</span>
+                </div>
+            </div>
+            <p style="font-size: 0.93rem; color: #475569; line-height: 1.55; margin-bottom: 1rem;">
+                Comprehensive management interface for browsing, creating, editing, and deleting individual sales transactions. Features instant dynamic revenue calculation (Quantity &times; Unit Price).
+            </p>
+            <ul style="font-size: 0.88rem; color: #64748b; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> Live Search by Customer, Product or Category</li>
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> Multi-attribute Sorting (Date, Revenue, Quantity)</li>
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> Filter by Geographic Territory &amp; Product Type</li>
+            </ul>
+        </div>
+
+        <!-- Feature 4: Product & Region Intelligence -->
+        <div class="card" style="background: #ffffff; border: 1px solid #ebe8f8; border-radius: 14px; padding: 1.75rem; box-shadow: 0 4px 16px rgba(79, 70, 229, 0.07);">
+            <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1rem;">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: #fff7ed; color: #ea580c; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+                    🏆
+                </div>
+                <div>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: #1e1b4b; margin: 0;">Product &amp; Regional Analytics</h3>
+                    <span style="font-size: 0.78rem; font-weight: 600; color: #ea580c; text-transform: uppercase;">Deep Business Insights</span>
+                </div>
+            </div>
+            <p style="font-size: 0.93rem; color: #475569; line-height: 1.55; margin-bottom: 1rem;">
+                In-depth analytical breakdown grouping transactions by product line and geographic operational regions (North, South, East, West, Central) with ranked market shares.
+            </p>
+            <ul style="font-size: 0.88rem; color: #64748b; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> Top-Selling Product Rankings by Gross Revenue</li>
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> Territory Performance Comparisons &amp; Averages</li>
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> Dynamic Category Margins and Volume Share</li>
+            </ul>
+        </div>
+
+        <!-- Feature 5: Admin Access & User Login Control -->
+        <div class="card" style="background: #ffffff; border: 2px solid #f59e0b; border-radius: 14px; padding: 1.75rem; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.12);">
+            <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1rem;">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+                    👑
+                </div>
+                <div>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: #1e1b4b; margin: 0;">Admin Console &amp; User Control</h3>
+                    <span style="font-size: 0.78rem; font-weight: 700; color: #b45309; text-transform: uppercase;">Full Login Access &amp; Impersonation</span>
+                </div>
+            </div>
+            <p style="font-size: 0.93rem; color: #475569; line-height: 1.55; margin-bottom: 1rem;">
+                Full administrative oversight over all user accounts. The Admin can inspect all registered members and directly access any user's session with a single click.
+            </p>
+            <ul style="font-size: 0.88rem; color: #64748b; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> <strong>Direct User Session Access:</strong> Log in as any user instantly</li>
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> <strong>Instant Return Banner:</strong> Restore Admin session with 1 click</li>
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> Role Promotion/Demotion &amp; Password Reset Tools</li>
+            </ul>
+        </div>
+
+        <!-- Feature 6: Resilient Dual-Engine Database -->
+        <div class="card" style="background: #ffffff; border: 1px solid #ebe8f8; border-radius: 14px; padding: 1.75rem; box-shadow: 0 4px 16px rgba(79, 70, 229, 0.07);">
+            <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1rem;">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+                    💾
+                </div>
+                <div>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: #1e1b4b; margin: 0;">Dual Database Engine</h3>
+                    <span style="font-size: 0.78rem; font-weight: 600; color: #0284c7; text-transform: uppercase;">SQLite + MySQL Support</span>
+                </div>
+            </div>
+            <p style="font-size: 0.93rem; color: #475569; line-height: 1.55; margin-bottom: 1rem;">
+                Built-in database abstraction layer supports zero-configuration SQLite for effortless local and serverless execution, with transparent auto-switching to production MySQL.
+            </p>
+            <ul style="font-size: 0.88rem; color: #64748b; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> Automatic schema migrations and table provisioning</li>
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> Pre-seeded default users, products, and sales</li>
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> Zero external dependency mode for college submissions</li>
+            </ul>
+        </div>
+
+        <!-- Feature 7: Native Desktop GUI -->
+        <div class="card" style="background: #ffffff; border: 1px solid #ebe8f8; border-radius: 14px; padding: 1.75rem; box-shadow: 0 4px 16px rgba(79, 70, 229, 0.07);">
+            <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1rem;">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: #fdf2f8; color: #db2777; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+                    🖥️
+                </div>
+                <div>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: #1e1b4b; margin: 0;">Desktop GUI Application</h3>
+                    <span style="font-size: 0.78rem; font-weight: 600; color: #db2777; text-transform: uppercase;">Tkinter Desktop Client</span>
+                </div>
+            </div>
+            <p style="font-size: 0.93rem; color: #475569; line-height: 1.55; margin-bottom: 1rem;">
+                Accompanied by a standalone native Python desktop program (<code>app_gui.py</code>) styled with custom ttk widgets to operate offline without running a web server.
+            </p>
+            <ul style="font-size: 0.88rem; color: #64748b; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem;">
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> Standalone Treeview table for sales records</li>
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> Embedded Matplotlib figure charting</li>
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><span style="color: #10b981;">✔</span> File dialog for CSV imports and database syncing</li>
+            </ul>
+        </div>
+
+    </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section style="background: linear-gradient(135deg, #312e81 0%, #4338ca 100%); color: #ffffff; border-radius: 16px; padding: 2.5rem 2rem; text-align: center; box-shadow: 0 8px 24px rgba(49, 46, 129, 0.25);">
+    <h3 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 0.6rem;">Ready to Explore the Platform?</h3>
+    <p style="font-size: 1rem; color: #c7d2fe; max-width: 600px; margin: 0 auto 1.5rem auto;">
+        Sign in with the Admin credentials to inspect user accounts, or register your own profile to upload CSV datasets.
+    </p>
+    <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+        <a href="{{ url_for('login') }}" class="btn btn-primary" style="font-size: 1rem; padding: 0.75rem 1.8rem;">
+            🔑 Sign In Now
+        </a>
+        <a href="{{ url_for('register') }}" class="btn btn-success" style="font-size: 1rem; padding: 0.75rem 1.8rem;">
+            📝 Create an Account
+        </a>
+    </div>
+</section>
+{% endblock %}
